@@ -21,7 +21,7 @@
     buttonWrapper.classList.add("input-group-append");
     button.classList.add("btn", "btn-primary");
     button.textContent = "Добавить дело";
-    // button.disabled = true;
+    button.disabled = true;
 
     buttonWrapper.append(button);
     form.append(input);
@@ -106,16 +106,6 @@
       }
     });
 
-    // todoItem.buttonDelete.addEventListener("click", function () {
-    //   returnArray1 = JSON.parse(localStorage.getItem(title));
-    //   idInput = todoItem.item.getAttribute("id");
-    //   if (confirm("Хотите удалить?")) {
-    //     todoItem.item.remove();
-    //     deleteItem(returnArray1, idInput);
-    //     localStorage.setItem(title, JSON.stringify(returnArray1));
-    //   }
-    // });
-
     //вкладываем кнопки в div для объединения
     //в buttonGroup аппендим buttonDone, а потом buttonDelete
     buttonGroup.append(buttonDone);
@@ -134,7 +124,7 @@
     container.append(todoItemForm.form);
     container.append(todoList);
     //перемещаем указатель мыши в форму
-    // document.getElementById("input").focus();
+    document.getElementById("input").focus();
 
     //отправляем запрос на список всех дел и response.json() получает массив объектов с делами
     const response = await fetch("http://localhost:3000/api/todos");
@@ -143,6 +133,16 @@
     todoItemList.forEach((todoItem) => {
       const todoItemElement = createTodoItemElement(todoItem);
       todoList.append(todoItemElement);
+    });
+
+    //Блокировка кнопки создания элемента если в поле для ввода пусто
+    todoItemForm.input.addEventListener("input", function () {
+      if (!todoItemForm.input.value) {
+        todoItemForm.button.disabled = true;
+        return;
+      } else {
+        todoItemForm.button.disabled = false;
+      }
     });
 
     //Браузер создает событие Submit на форме по нажатию enter или на кнопку создания дела.
@@ -176,63 +176,10 @@
 
       //обнуляем значение в поле ввода формы, чтобы пользователь не стирал
       todoItemForm.input.value = "";
-      // document.getElementById("input").focus();
-      //   todoItemForm.button.disabled = true;
+      document.getElementById("input").focus();
+      todoItemForm.button.disabled = true;
     });
   }
-  //NEW
-  //   async function loadTodoItems() {
-  //     const response = await fetch("http://localhost:3000/api/todos");
-  //     const data = await response.json();
-  //     console.log(data);
-  //   }
-
-  //   async function createTodoItem() {
-  //     const response = await fetch("http://localhost:3000/api/todos", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         name: "Сходить за хлебом",
-  //         owner: "Тимофей",
-  //       }),
-  //     });
-  //     const data = await response.json();
-  //     console.log(data);
-  //   }
-
-  //   async function getTodoItem() {
-  //     const response = await fetch(
-  //       "http://localhost:3000/api/todos/1608029025426"
-  //     );
-  //     const data = await response.json();
-  //     console.log(data);
-  //   }
-
-  //   async function markTodoAsDone() {
-  //     const response = await fetch(
-  //       "http://localhost:3000/api/todos/1608029025426",
-  //       {
-  //         method: "PATCH",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({ done: true }),
-  //       }
-  //     );
-  //     const data = await response.json();
-  //     console.log(data);
-  //   }
-
-  //   async function deleteTodoItem() {
-  //     const response = await fetch(
-  //       "http://localhost:3000/api/todos/1608029025426",
-  //       {
-  //         method: "DELETE",
-  //       }
-  //     );
-  //     if (response.status === 404)
-  //       console.log("Не удалось удалить дело, так как его не существует");
-  //     const data = await response.json();
-  //     console.log(data);
-  //   }
 
   window.createTodoApp = createTodoApp;
 })();
