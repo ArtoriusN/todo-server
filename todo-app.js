@@ -115,7 +115,7 @@
     return item;
   }
 
-  async function createTodoApp(container, title = "Список дел") {
+  async function createTodoApp(container, title, owner) {
     let todoAppTitle = createAppTitle(title);
     let todoItemForm = createTodoItemForm();
     let todoList = createTodoList();
@@ -127,7 +127,9 @@
     document.getElementById("input").focus();
 
     //отправляем запрос на список всех дел и response.json() получает массив объектов с делами
-    const response = await fetch("http://localhost:3000/api/todos");
+    const response = await fetch(
+      `http://localhost:3000/api/todos?owner=${owner}`
+    );
     const todoItemList = await response.json();
 
     todoItemList.forEach((todoItem) => {
@@ -160,7 +162,7 @@
         method: "POST",
         body: JSON.stringify({
           name: todoItemForm.input.value.trim(),
-          owner: "Artur",
+          owner: owner,
         }),
         headers: {
           "Content-Type": "application/json",
