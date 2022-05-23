@@ -40,7 +40,7 @@
     return list;
   }
   //создаем и возвращаем дело
-  function createTodoItem(name, id) {
+  function createTodoItem(name) {
     let item = document.createElement("li");
     let buttonGroup = document.createElement("div");
     let buttonDone = document.createElement("button");
@@ -54,11 +54,6 @@
       "justify-content-between",
       "align-items-center"
     );
-    let idItem = Date.now();
-    if (!id) {
-      id = idItem;
-    }
-    item.setAttribute("id", id);
 
     buttonGroup.classList.add("btn-group", "btn-group-sm");
     buttonDone.classList.add("btn", "btn-success");
@@ -73,13 +68,12 @@
 
     return {
       item,
-      idItem,
       buttonDone,
       buttonDelete,
     };
   }
 
-  function createTodoApp(container, title = "Список дел", obj = {}) {
+  async function createTodoApp(container, title = "Список дел") {
     let todoAppTitle = createAppTitle(title);
     let todoItemForm = createTodoItemForm();
     let todoList = createTodoList();
@@ -88,10 +82,10 @@
     container.append(todoItemForm.form);
     container.append(todoList);
     //перемещаем указатель мыши в форму
-    document.getElementById("input").focus();
+    // document.getElementById("input").focus();
 
     //определяем id списка кнопки
-    todoItemForm.form.addEventListener("submit", async e => {
+    todoItemForm.form.addEventListener("submit", async (e) => {
       //предотвращаем стандартное действие браузера при отправке формы (перезагрузка страницы)
       e.preventDefault();
 
@@ -101,34 +95,35 @@
       }
 
       const response = await fetch("http://localhost:3000/api/todos", {
-        metod: POST,
+        method: "POST",
         body: JSON.stringify({
           name: todoItemForm.input.value.trim(),
           owner: "Artur",
         }),
-        header: {
-          'Content-Type': 'application/json';
-        }
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
+      const todoItem = await response.json();
 
-      const todoItem = createTodoItem(todoItemForm.input.value);
+      const todoItemElement = createTodoItem(todoItem.name);
 
       //добавляем обработчик на кнопки
-      todoItem.buttonDone.addEventListener("click", () => {
-        todoItem.item.classList.toggle("list-group-item-success");
+      todoItemElement.buttonDone.addEventListener("click", () => {
+        todoItemElement.item.classList.toggle("list-group-item-success");
       });
-      todoItem.buttonDelete.addEventListener("click", () => {
+      todoItemElement.buttonDelete.addEventListener("click", () => {
         if (confirm("Хотите удалить?")) {
-          todoItem.item.remove();
+          todoItemElement.item.remove();
         }
       });
 
       //создаем и добавляем в список (ul) новое дело (li) с названием из поля ввода фармы
-      todoList.append(todoItem.item);
+      todoList.append(todoItemElement.item);
 
       //обнуляем значение в поле ввода формы, чтобы пользователь не стирал
       todoItemForm.input.value = "";
-      document.getElementById("input").focus();
+      // document.getElementById("input").focus();
       //   todoItemForm.button.disabled = true;
     });
   }
