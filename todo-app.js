@@ -40,14 +40,14 @@
     return list;
   }
   //создаем и возвращаем дело
-  function createTodoItemElement({ name, done, id }) {
+  function createTodoItemElement(todoItem, { markTodoAsDone, deleteTodoItem }) {
     let item = document.createElement("li");
     let buttonGroup = document.createElement("div");
     let buttonDone = document.createElement("button");
     let buttonDelete = document.createElement("button");
 
     //Помещаем передаваемое название в элемент списка
-    item.textContent = name;
+    item.textContent = todoItem.name;
     item.classList.add(
       "list-group-item",
       "d-flex",
@@ -63,45 +63,22 @@
     buttonDelete.textContent = "Удалить";
 
     //проверка было ли дело из бд выполнено
-    if (done) {
+    if (todoItem.done) {
       //переключает класс дела
       item.classList.toggle("list-group-item-success");
     }
 
-    item.setAttribute("id", id);
+    item.setAttribute("id", todoItem.id);
 
     //добавляем обработчик на кнопки
     buttonDone.addEventListener("click", (e) => {
-      const idInput = e.path[2].getAttribute("id");
-      markTodoAsDone(idInput);
-      async function markTodoAsDone(id) {
-        const response = await fetch(`http://localhost:3000/api/todos/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ done: !done }),
-        });
-        const data = await response.json();
-        console.log(data);
-      }
-      item.classList.toggle("list-group-item-success");
+      markTodoAsDone(todoItem);
+
+      item.classList.toggle("list-group-item-success", !todoItem.done);
     });
     buttonDelete.addEventListener("click", (e) => {
-      const idInput = e.path[2].getAttribute("id");
-
       if (confirm("Хотите удалить?")) {
-        deleteTodoItem(idInput);
-        async function deleteTodoItem(id) {
-          const response = await fetch(
-            `http://localhost:3000/api/todos/${id}`,
-            {
-              method: "DELETE",
-            }
-          );
-          if (response.status === 404)
-            console.log("Не удалось удалить дело, так как его не существует");
-          const data = await response.json();
-          console.log(data);
-        }
+        deleteTodoItem(todoItem);
         item.remove();
       }
     });
@@ -132,8 +109,30 @@
     );
     const todoItemList = await response.json();
 
+    let methods = {
+      markTodoAsDone({ id, done }) {
+        const response = fetch(`http://localhost:3000/api/todos/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ done: !done }),
+        });
+        // const data = response.json();
+        // console.log(data);
+      },
+      deleteTodoItem({ id }) {
+        const response = fetch(`http://localhost:3000/api/todos/${id}`, {
+          method: "DELETE",
+        });
+        if (response.status === 404)
+          console.log("Не удалось удалить дело, так как его не существует");
+        // const data = response.json();
+        // console.log(data);
+      },
+    };
+
+    //перебираем массив с делами из бд и отправляем дела на отрисовку через функцию
     todoItemList.forEach((todoItem) => {
-      const todoItemElement = createTodoItemElement(todoItem);
+      const todoItemElement = createTodoItemElement(todoItem, methods);
       todoList.append(todoItemElement);
     });
 
@@ -171,7 +170,7 @@
       //response.json() после добавления выводт добавленный объект (дело)
       const todoItem = await response.json();
 
-      const todoItemElement = createTodoItemElement(todoItem);
+      const todoItemElement = createTodoItemElement(todoItem, methods);
 
       //создаем и добавляем в список (ul) новое дело (li) с названием из поля ввода фармы
       todoList.append(todoItemElement);
